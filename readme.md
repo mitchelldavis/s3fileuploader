@@ -1,6 +1,8 @@
 S3FileUploader
 ==============
 
+[![Build Status](https://travis-ci.org/mitchelldavis/s3fileuploader.svg?branch=master)](https://travis-ci.org/mitchelldavis/s3fileuploader)
+
 This application can be used to give users the ability to upload files to non-public buckets in AWS S3 without provisioning IAM credentials.
 
 The application leverages AWS Cognito User and Identiy pools to do so.  This means a Cognito User Pool associated with an Identity pool is required and the Ids of said resources should be passed to the parameters of the application.
