@@ -1,0 +1,30 @@
+# trusty beta image has jdk8, gcc4.8.4
+dist: bionic
+sudo: required
+# Not technically required but suppresses 'Ruby' in Job status message.
+language: go
+
+go:
+- 1.12.x
+
+os:
+  - linux
+
+env:
+  - V=0.19.2
+
+script:
+  - GO111MODULE=on make
+notifications:
+  email: false
+deploy:
+  provider: releases
+  api_key: $github_token 
+  file:
+    - ".bin/s3fileupload_darwin_amd64"
+    - ".bin/s3fileupload_linux_amd64"
+    - ".bin/s3fileupload_windows_amd64.exe"
+  skip_cleanup: true
+  draft: true
+  on:
+    tags: true
