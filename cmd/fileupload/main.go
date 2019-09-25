@@ -3,14 +3,14 @@ package main
 import (
     "log"
     "flag"
-    "path"
-    "path/filepath"
     "os"
+    "path/filepath"
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/aws/credentials"
     "github.com/aws/aws-sdk-go/service/s3/s3manager"
     "github.com/mitchelldavis/s3fileupload/pkg/cognitoprovider"
+    "github.com/mitchelldavis/s3fileupload/pkg/progressreader"
 )
 
 var regionArg, usernameArg, clientIdArg, userPoolIdArg, identityPoolIdArg string
@@ -77,7 +77,9 @@ func main() {
         Credentials: credentials.NewCredentials(cp),
     })
 
-    uploader := s3manager.NewUploader(sess)
+    uploader := s3manager.NewUploader(sess, func(u *s3manager.Uploader) {
+		u.PartSize = 5 * 1024 * 1024
+	})
 
     f, err  := os.Open(filenameArg)
     if err != nil {
@@ -85,11 +87,28 @@ func main() {
     }
     defer f.Close()
 
+    fileInfo, err := f.Stat()
+	if err != nil {
+		log.Fatalf("ERROR: %v", err)
+	}
+
+    pr := &progressreader.ProgressReader{
+        File: f,
+        Size: fileInfo.Size(),
+        Progress: func(size, read int64) {
+			// I have no idea why the read length need to be div 2,
+			// maybe the request read once when Sign and actually send call ReadAt again
+			// It works for me
+            log.Printf("total read:%d    progress:%d%%\n", read/2, int(float32(read*100/2)/float32(size)))
+        },
+    }
+
     // Upload the file to S3.
     result, err := uploader.Upload(&s3manager.UploadInput{
-        Bucket: aws.String("teamtavis-datalake"),
-        Key:    aws.String(path.Join(usernameArg, filepath.Base(filenameArg))),
-        Body:   f,
+        Bucket: aws.String(bucketArg),
+        //Key:    aws.String(path.Join(usernameArg, filepath.Base(filenameArg))),
+        Key:    aws.String(filepath.Base(filenameArg)),
+        Body:   pr,
     })
     if err != nil {
         log.Fatalf("failed to upload file, %v", err)
