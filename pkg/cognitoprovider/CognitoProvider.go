@@ -2,13 +2,15 @@ package cognitoprovider
 
 import (
     "fmt"
+    "time"
+    "errors"
+    "syscall"
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
     "github.com/aws/aws-sdk-go/aws/credentials"
     "github.com/aws/aws-sdk-go/service/cognitoidentityprovider"
     "github.com/aws/aws-sdk-go/service/cognitoidentity"
-    "time"
-    "errors"
+    "golang.org/x/crypto/ssh/terminal"
 )
 
 type cognitoProvider struct {
@@ -75,11 +77,18 @@ func (cp *cognitoProvider) InitiateAuth() (*string, error) {
    
     fmt.Print("Please Enter A Password: ")
 
-    var secret string
-    _, err = fmt.Scan(&secret)
+    bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
     if err != nil {
         return nil, err
     }
+    fmt.Println()
+    secret := string(bytePassword)
+
+    //var secret string
+    //_, err = fmt.Scan(&secret)
+    //if err != nil {
+    //    return nil, err
+    //}
 
     svc := cognitoidentityprovider.New(sess)
     resp, err := svc.InitiateAuth(&cognitoidentityprovider.InitiateAuthInput{
@@ -113,17 +122,20 @@ func (cp *cognitoProvider) NewPasswordChallengeResponse(sessionId *string) (*str
     
     fmt.Println("Your password needs to be changed.")
     fmt.Print("Please re-enter your old password: ")
-    var oldPassword string
-    _, err = fmt.Scan(&oldPassword)
+    
+    bytePassword, err := terminal.ReadPassword(int(syscall.Stdin))
     if err != nil {
         return nil, err
     }
+    fmt.Println()
+    var oldPassword string = string(bytePassword)
     fmt.Print("Please enter a new password: ")
-    var newPassword string
-    _, err = fmt.Scan(&newPassword)
+    bytePassword, err = terminal.ReadPassword(int(syscall.Stdin))
     if err != nil {
         return nil, err
     }
+    fmt.Println()
+    var newPassword string = string(bytePassword)
 
     svc := cognitoidentityprovider.New(sess)
     resp, err := svc.RespondToAuthChallenge(&cognitoidentityprovider.RespondToAuthChallengeInput{

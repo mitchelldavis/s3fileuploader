@@ -100,7 +100,7 @@ func main() {
 			// I have no idea why the read length need to be div 2,
 			// maybe the request read once when Sign and actually send call ReadAt again
 			// It works for me
-            log.Printf("total read:%d    progress:%d%%\n", read/2, int(float32(read*100/2)/float32(size)))
+            //log.Printf("total read:%d    progress:%d%%\n", read/2, int(float32(read*100/2)/float32(size)))
         },
     }
 
