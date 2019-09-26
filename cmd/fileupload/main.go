@@ -4,6 +4,7 @@ import (
     "log"
     "flag"
     "os"
+	"path"
     "path/filepath"
     "github.com/aws/aws-sdk-go/aws"
     "github.com/aws/aws-sdk-go/aws/session"
@@ -106,8 +107,8 @@ func main() {
     // Upload the file to S3.
     result, err := uploader.Upload(&s3manager.UploadInput{
         Bucket: aws.String(bucketArg),
-        //Key:    aws.String(path.Join(usernameArg, filepath.Base(filenameArg))),
-        Key:    aws.String(filepath.Base(filenameArg)),
+        Key:    aws.String(path.Join(usernameArg, filepath.Base(filenameArg))),
+        //Key:    aws.String(filepath.Base(filenameArg)),
         Body:   pr,
     })
     if err != nil {
